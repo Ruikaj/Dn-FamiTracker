@@ -578,18 +578,29 @@ ft_enable_channel:
 ft_bankswitch:
 ; bankswitch part of song data (frames + patterns, 1 page only)
 ;	sta $5FFA
-	sta $5FFB
+
+	;ADD customcode ________________________________________________
+	sta $5FFE
+	;END customcode ________________________________________________
+
 	rts
 ft_bankswitch2:
 ; bankswitch DPCM samples (3 pages)
-	clc
-	sta $5FFC
-	adc #$01
-	sta $5FFD
-	adc #$01
-	sta $5FFE
+;	clc
+;	sta $5FFC
 ;	adc #$01
-;	sta $5FFF
+;	sta $5FFD
+;	adc #$01
+;	sta $5FFE
+;	adc #$01
+
+	;ADD customcode ________________________________________________
+	sec
+	sbc #$03 ;sbtruct banks from default $C000 bank (C->D->E->F = 3offsets)
+	sta $5FFF
+	clc
+	;END customcode ________________________________________________
+
 	rts
 
 ;

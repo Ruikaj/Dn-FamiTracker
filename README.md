@@ -1,3 +1,48 @@
+
+**Dn-Famitracker 0.5.2 (improve instrument overflow)**
+
+This clone is a version with a modified NSF file memory layout that allocates 4 pages for instrument data.
+
+It can hold up to 16KB of instrument data, reducing the possibility of instrument overflow during NSF export.
+
+(Originally, when using DPCM at 16KB or more, the Instrument has a limit of about 4KB.)
+ 
+ 
+
+**File memory map for NSFtype:bankswitched**
+
+Official Implementation:
+| PRG-ROM size | CPU Address | Data type | Bank capabilities |
+| --- | --- | --- | --- |
+|  | $8000 | Famitrakcer Driver  | Non-bankswitched ($8000 ~ $9FFF, 8KB) |
+| 8KB |  |  |  |
+|  | $A000 | Seqence+Instrument | 4KB Non-bankswitched |
+| 16KB  | $B000 | flame + pattern data |  4KB bankswitching |
+|  | $C000 | DPCM | 4KB bankswitching x 3pages ($C000 ~ $EFFF, 12KB) |
+| 24KB |  |  | |
+|  | $E000 |  |  |
+| 32KB |  |  | (Non-bankswitched for TNS cart) |
+
+Modified Implementation:
+| PRG-ROM size | CPU Address | Data type | Bank capabilities |
+| --- | --- | --- | --- |
+|  | $8000 | Famitrakcer Driver | Non-bankswitched ($8000 ~ $9FFF, 8KB) |
+| 8KB |  |  |  |
+|  | $A000 | Seqence+Instrument | Non-bankswitched ($A000 ~ $DFFF, 16KB) |
+| 16KB  |  |  |  |
+|  | $C000 |  |  |
+| 24KB |  |  |  |
+|  | $E000 | flame + pattern data | 4KB bankswitching |
+| 32KB | $F000 | DPCM | 4KB bankswitching |
+
+ 
+ 
+TODO: Create a version for the TNS cartridge with a fixed final bank.
+ 
+
+
+---
+
 # ![Dn-FamiTracker banner logotype](docs/dn_logo.svg)
 
 Dn-FamiTracker is a fork of 0CC-FamiTracker that incorporates numerous fixes and
