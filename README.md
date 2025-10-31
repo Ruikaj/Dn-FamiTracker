@@ -37,7 +37,7 @@ Modified Implementation:
 
  
  
-TODO: Create a version for the TNS and Everdirive cartridge with a fixed final bank.
+TODO: Create a version for the TNS and Everdrive cartridge with a fixed final bank.
  
 
 
