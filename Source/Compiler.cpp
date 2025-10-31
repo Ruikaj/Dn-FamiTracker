@@ -74,14 +74,6 @@
  * - $C000 - $EFFF: Samples (3 pages)
  * - $F000 - $FFFF: Fixed to last bank for compatibility with TNS HFC carts
  *
- * 
- * Bankswitched file layout (extend pages for instrument data):
- *
- * - $8000 - $9FFF: Music driver data
- * - $A000 - $DFFF: Non-Bankswitched song data (instruments(seqences), 4 pages;16kb)
- * - $E000 - $EFFF: Swichted part of song data (frames + patterns, 1 page only)
- * - $F000 - $FFFF: Samples (1 pages)
- * 
  * Non-bankswitched, compressed layout:
  *
  * - Music data, driver, DPCM samples
@@ -101,21 +93,21 @@
 //#define LOCAL_DUPLICATE_PATTERN_REMOVAL
 
 // Enable bankswitching on all songs (default off)
-#define FORCE_BANKSWITCH
+//#define FORCE_BANKSWITCH
 
 const int CCompiler::PATTERN_CHUNK_INDEX		= 0;		// Fixed at 0 for the moment
 
 const int CCompiler::PAGE_SIZE					= 0x1000;
 const int CCompiler::PAGE_START					= 0x8000;
-const int CCompiler::PAGE_BANKED				= 0xE000;	// 0xE000 -> 0xEFFF (before:0xB000 -> 0xBFFF)
-const int CCompiler::PAGE_SAMPLES				= 0xF000;
+const int CCompiler::PAGE_BANKED				= 0xB000;	// 0xB000 -> 0xBFFF
+const int CCompiler::PAGE_SAMPLES				= 0xC000;
 
-const int CCompiler::PATTERN_SWITCH_BANK		= 6;		// 0xE000 -> 0xEFFF 
+const int CCompiler::PATTERN_SWITCH_BANK		= 3;		// 0xB000 -> 0xBFFF
 
-const int CCompiler::DPCM_PAGE_WINDOW			= 1;		// Number of switchable pages in the DPCM area
-const int CCompiler::DPCM_SWITCH_ADDRESS		= 0xFFF9;	// Switch to new banks when reaching this address
+const int CCompiler::DPCM_PAGE_WINDOW			= 3;		// Number of switchable pages in the DPCM area
+const int CCompiler::DPCM_SWITCH_ADDRESS		= 0xF000;	// Switch to new banks when reaching this address
 
-const bool CCompiler::LAST_BANK_FIXED			= false;		// Fix for TNS carts(if true)
+const bool CCompiler::LAST_BANK_FIXED			= true;		// Fix for TNS carts
 
 // Flag byte flags
 const int CCompiler::FLAG_BANKSWITCHED	= 1 << 0;
@@ -1345,10 +1337,10 @@ void CCompiler::CreateHeader(stNSFHeader *pHeader, int MachineType, unsigned int
 	pHeader->Speed_NTSC = SpeedNTSC; //0x411A; // default ntsc speed
 
 	if (m_bBankSwitched) {
-		for (int i = 0; i < 7; ++i) {  //before: for (int i = 0; i < 4; ++i) {
+		for (int i = 0; i < 4; ++i) {
 			unsigned int SampleBank = m_iFirstSampleBank + i;
 			pHeader->BankValues[i] = i;
-			pHeader->BankValues[i + 7] = (SampleBank < m_iLastBank) ? SampleBank : m_iLastBank; //before: pHeader->BankValues[i + 4]
+			pHeader->BankValues[i + 4] = (SampleBank < m_iLastBank) ? SampleBank : m_iLastBank;
 		}
 		if (LAST_BANK_FIXED) {
 			// Bind last page to last bank
@@ -1739,16 +1731,16 @@ bool CCompiler::CollectLabelsBankswitched(CMap<CStringA, LPCSTR, int, int> &labe
 	int FixedBankMaxSize = PAGE_BANKED - PAGE_START;
 	int FixedBankPages = PATTERN_SWITCH_BANK + 1;
 
-	if (Offset + DriverSizeAndNSFDRV > 0x6000) { //before: (Offset + DriverSizeAndNSFDRV > 0x3000) {
+	if (Offset + DriverSizeAndNSFDRV > 0x3000) {
 		// Instrument data did not fit within the limit, display an error and abort?
 		Print("Error: Instrument, frame & pattern data can't fit within bank allocation, can't export file!\n");
-		Print(" * $%02X bytes used out of $6000 allowed\n", Offset + DriverSizeAndNSFDRV);
+		Print(" * $%02X bytes used out of $3000 allowed\n", Offset + DriverSizeAndNSFDRV);
 		return false;
 	}
 
 	unsigned int Track = 0;
 
-	// The switchable area is $E000-$F000
+	// The switchable area is $B000-$C000
 	for (CChunk *pChunk : m_vChunks) {
 		int Size = pChunk->CountDataSize();
 
@@ -1781,7 +1773,7 @@ bool CCompiler::CollectLabelsBankswitched(CMap<CStringA, LPCSTR, int, int> &labe
 	}
 
 	if (m_bBankSwitched)
-		m_iFirstSampleBank = ((Bank < FixedBankPages) ? ((Offset + DriverSizeAndNSFDRV) >> 12) : Bank) + 4;//before: + 1
+		m_iFirstSampleBank = ((Bank < FixedBankPages) ? ((Offset + DriverSizeAndNSFDRV) >> 12) : Bank) + 1;
 
 	m_iLastBank = m_iFirstSampleBank;
 
