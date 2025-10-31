@@ -23,7 +23,10 @@ Official Implementation:
 |  | $E000 |  |  |
 | 32KB |  |  | (Non-bankswitched for TNS cart) |
 
-Modified Implementation:
+Modified Implementation 
+
+v20251031:
+(This layout does not play NSF files using DPCM correctly on TNS and Everdrive flashcarts.)
 | PRG-ROM size | CPU Address | Data type | Bank capabilities |
 | --- | --- | --- | --- |
 |  | $8000 | Famitrakcer Driver | Non-bankswitched ($8000 ~ $9FFF, 8KB) |
@@ -36,9 +39,17 @@ Modified Implementation:
 | 32KB | $F000 | DPCM | 4KB bankswitching |
 
  
- 
-TODO: Create a version for the TNS and Everdrive cartridge with a fixed final bank.
- 
+v20251101 later:
+| PRG-ROM size | CPU Address | Data type | Bank capabilities |
+| --- | --- | --- | --- |
+|  | $8000 | Famitrakcer Driver | Non-bankswitched ($8000 ~ $9FFF, 8KB) |
+| 8KB |  |  |  |
+|  | $A000 | Seqence+Instrument | Non-bankswitched ($A000 ~ $CFFF, 12KB) |
+| 16KB  |  |  |  |
+|  | $C000 |  |  |
+| 24KB | $D000 | flame + pattern data | 4KB bankswitching |
+|  | $E000 | DPCM | 4KB bankswitching |
+| 32KB | $F000 |  | (Non-bankswitched for TNS and Everdrive flashcarts) |
 
 
 ---

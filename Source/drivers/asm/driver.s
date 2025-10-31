@@ -580,7 +580,7 @@ ft_bankswitch:
 ;	sta $5FFA
 
 	;ADD customcode ________________________________________________
-	sta $5FFE
+	sta $5FFD
 	;END customcode ________________________________________________
 
 	rts
@@ -596,8 +596,8 @@ ft_bankswitch2:
 
 	;ADD customcode ________________________________________________
 	sec
-	sbc #$03 ;sbtruct banks from default $C000 bank (C->D->E->F = 3offsets)
-	sta $5FFF
+	sbc #$03 ;subtraction for playing the correct DPCM sample address
+	sta $5FFE
 	clc
 	;END customcode ________________________________________________
 
