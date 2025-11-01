@@ -518,8 +518,8 @@ void CChunkRenderText::StoreWavesChunk(CChunk *pChunk, CFile *pFile)
 
 void CChunkRenderText::StoreMusicBankSegment(unsigned char bank, CStringA &str)
 {
-	if (bank < CCompiler::PATTERN_SWITCH_BANK)
-		return;
+//	if (bank < CCompiler::PATTERN_SWITCH_BANK)
+//		return;
 	CStringA segmenttxt, memorytxt;
 	bool duplicate = false;
 	str.Format("\t.segment \"MUS_%02X\"\n", bank);
