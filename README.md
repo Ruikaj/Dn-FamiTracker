@@ -25,19 +25,7 @@ Official Implementation:
 
 Modified Implementations 
  
-v20251101:
-| PRG-ROM size | CPU Address | Data type | Bank capabilities |
-| --- | --- | --- | --- |
-|  | $8000 | Famitrakcer Driver | Non-bankswitched ($8000 ~ $9FFF, 8KB) |
-| 8KB |  |  |  |
-|  | $A000 | Seqence+Instrument | Non-bankswitched ($A000 ~ $CFFF, 12KB) |
-| 16KB  |  |  |  |
-|  | $C000 |  |  |
-| 24KB | $D000 | flame + pattern data | 4KB bankswitching |
-|  | $E000 | DPCM | 4KB bankswitching |
-| 32KB | $F000 |  | (Non-bankswitched for TNS flashcarts) |
-
-v20251102:
+v20251031:
 (This layout does not play NSF files using DPCM correctly on TNS and Everdrive flashcarts.)
 | PRG-ROM size | CPU Address | Data type | Bank capabilities |
 | --- | --- | --- | --- |
@@ -50,7 +38,19 @@ v20251102:
 |  | $E000 | flame + pattern data | 4KB bankswitching |
 | 32KB | $F000 | DPCM | 4KB bankswitching |
 
-ASM exports are subject to the same limitations as NSF exports, so using this Dn-FT clone allows you to export tracks with more instruments to ASM files.
+v20251101 later:
+| PRG-ROM size | CPU Address | Data type | Bank capabilities |
+| --- | --- | --- | --- |
+|  | $8000 | Famitrakcer Driver | Non-bankswitched ($8000 ~ $9FFF, 8KB) |
+| 8KB |  |  |  |
+|  | $A000 | Seqence+Instrument | Non-bankswitched ($A000 ~ $CFFF, 12KB) |
+| 16KB  |  |  |  |
+|  | $C000 |  |  |
+| 24KB | $D000 | flame + pattern data | 4KB bankswitching |
+|  | $E000 | DPCM | 4KB bankswitching |
+| 32KB | $F000 |  | (Non-bankswitched for TNS flashcarts) |
+
+ASM exports are subject to the same limitations as NSF exports, so using this Dn-FT clone allows to export tracks with more instruments to ASM files.
 This repository(TODO) shows an example code and methods for building NES files from ASM exported by this Dn-FT.
 
 ---

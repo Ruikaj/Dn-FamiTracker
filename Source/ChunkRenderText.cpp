@@ -53,7 +53,14 @@ const char CChunkRenderText::LABEL_PATTERN[]			= "ft_s%ip%ic%i";			// three argu
  * Text chunk render, these methods will always output single byte strings
  *
  */
-
+int ModuleHeader8KBcount = 15;
+int InstrumentlistChunk8KBcount = 0;
+int InstrumentChunk8KBcount = 0;
+int SequenceChunk8KBcount = 0;
+int N163_8KBcount = 0;
+int DPCMlist8KBcount = 0;
+int Groove_SongPointer_info_8KBcount = 0;
+bool write2ndFIXEDsegment = true;
 static const int DEFAULT_LINE_BREAK = 20;
 
 // String render functions
@@ -71,8 +78,8 @@ const stChunkRenderFunc CChunkRenderText::RENDER_FUNCTIONS[] = {
 	{CHUNK_FRAME_LIST,		&CChunkRenderText::StoreFrameListChunk},
 	{CHUNK_FRAME,			&CChunkRenderText::StoreFrameChunk},
 	{CHUNK_PATTERN,			&CChunkRenderText::StorePatternChunk},
-	{CHUNK_WAVETABLE,		&CChunkRenderText::StoreWavetableChunk},
-	{CHUNK_WAVES,			&CChunkRenderText::StoreWavesChunk}
+	{CHUNK_WAVETABLE,		&CChunkRenderText::StoreWavetableChunk}, // FDS wave
+	{CHUNK_WAVES,			&CChunkRenderText::StoreWavesChunk} // N163 wave
 };
 
 CChunkRenderText::CChunkRenderText(CFile *pFile) : m_pFile(pFile),
@@ -98,7 +105,7 @@ void CChunkRenderText::StoreChunks(const std::vector<CChunk*> &Chunks)
 
 	// Module header
 	if (m_bBankSwitched)
-		WriteFileString(CStringA("\t.segment \"MUS_FIXED\"\n"), m_pFile);
+		WriteFileString(CStringA("\t;.segment \"MUS_FIXED\"\n"), m_pFile);
 
 	DumpStrings(CStringA("; Module header\n"), CStringA("\n"), m_headerStrings, m_pFile);
 
@@ -206,14 +213,21 @@ void CChunkRenderText::StoreHeaderChunk(CChunk *pChunk, CFile *pFile)
 		str.AppendFormat("\t.word %s\n", pChunk->GetDataRefName(i++));
 		str.AppendFormat("\t.word %s\n", pChunk->GetDataRefName(i++));		// // // Groove
 		str.AppendFormat("\t.byte %i ; flags\n", pChunk->GetData(i++));
-		if (pChunk->IsDataReference(i))
+		if (pChunk->IsDataReference(i)){
 			str.AppendFormat("\t.word %s\n", pChunk->GetDataRefName(i++));	// FDS waves
+			ModuleHeader8KBcount++;
+			ModuleHeader8KBcount++;
+			}
 		str.AppendFormat("\t.word %i ; NTSC speed\n", pChunk->GetData(i++));
 		str.AppendFormat("\t.word %i ; PAL speed\n", pChunk->GetData(i++));
-		if (i < len)
+		if (i < len){
 			str.AppendFormat("\t.word %i ; N163 channels\n", pChunk->GetData(i++));	// N163 channels
+			ModuleHeader8KBcount++;
+			ModuleHeader8KBcount++;
+			}
 	}
 
+	str.AppendFormat("\n;ModuleHeader8KBcountNOW: %d\n", ModuleHeader8KBcount);
 	m_headerStrings.Add(str);
 }
 
@@ -226,8 +240,10 @@ void CChunkRenderText::StoreInstrumentListChunk(CChunk *pChunk, CFile *pFile)
 
 	for (int i = 0; i < pChunk->GetLength(); ++i) {
 		str.AppendFormat(_T("\t.word %s\n"), pChunk->GetDataRefName(i));
+		InstrumentlistChunk8KBcount++;
+		InstrumentlistChunk8KBcount++;
 	}
-
+	str.AppendFormat("\n;N163_Instrumentlist8KBcountNOW: %d\n", InstrumentlistChunk8KBcount);
 	m_instrumentListStrings.Add(str);
 }
 
@@ -239,22 +255,28 @@ void CChunkRenderText::StoreInstrumentChunk(CChunk *pChunk, CFile *pFile)
 	// don't write anything if data doesn't exist
 	if (len != 0) {
 		str.Format("%s:\n\t.byte %i\n", pChunk->GetLabel(), pChunk->GetData(0));
+		InstrumentChunk8KBcount++;
 
 		for (int i = 1; i < len; ++i) {
 			if (pChunk->IsDataReference(i)) {
 				str.AppendFormat("\t.word %s\n", pChunk->GetDataRefName(i));
+				InstrumentChunk8KBcount++;
+				InstrumentChunk8KBcount++;
 			}
 			else {
 				if (pChunk->GetDataSize(i) == 1) {
 					str.AppendFormat("\t.byte $%02X\n", pChunk->GetData(i));
+					InstrumentChunk8KBcount++;
 				}
 				else {
 					str.AppendFormat("\t.word $%04X\n", pChunk->GetData(i));
+					InstrumentChunk8KBcount++;
+					InstrumentChunk8KBcount++;
 				}
 			}
 		}
 	}
-
+	str.AppendFormat("\n;N163_Instrument8KBcountNOW: %d\n", InstrumentChunk8KBcount);
 	str.Append("\n");
 
 	m_instrumentStrings.Add(str);
@@ -267,6 +289,7 @@ void CChunkRenderText::StoreSequenceChunk(CChunk *pChunk, CFile *pFile)
 	str.Format("%s:\n", pChunk->GetLabel());
 	StoreByteString(pChunk, str, DEFAULT_LINE_BREAK);
 
+	str.AppendFormat("\n;SequenceChunk8KBcountNOW: %d\n", SequenceChunk8KBcount);
 	m_sequenceStrings.Add(str);
 }
 
@@ -279,8 +302,12 @@ void CChunkRenderText::StoreSampleListChunk(CChunk *pChunk, CFile *pFile)
 
 	for (int i = 0; i < pChunk->GetLength(); i += 3) {
 		str.AppendFormat("\t.byte %i, %i, %i\n", pChunk->GetData(i + 0), pChunk->GetData(i + 1), pChunk->GetData(i + 2));
+		DPCMlist8KBcount++;
+		DPCMlist8KBcount++;
+		DPCMlist8KBcount++;
 	}
-
+	str.AppendFormat("\n;DPCMsamplelist8KBcountNOW: %d\n", DPCMlist8KBcount);
+	write2ndFIXEDsegment_if_over8KB(pChunk, str);
 	m_sampleListStrings.Add(str);
 }
 
@@ -309,22 +336,30 @@ void CChunkRenderText::StoreSamplePointersChunk(CChunk *pChunk, CFile *pFile)
 			//str.AppendFormat("%i", pChunk->GetData(i + 2));
 			str.AppendFormat("<.bank(%s)\n", label);
 			samplenum++;
+			
+			DPCMlist8KBcount++;
+			DPCMlist8KBcount++;
+			DPCMlist8KBcount++;
 		}
 	}
-
+	str.AppendFormat("\n;DPCMsamplelist8KBcountNOW: %d\n", DPCMlist8KBcount);
+	write2ndFIXEDsegment_if_over8KB(pChunk, str);
 	m_samplePointersStrings.Add(str);
 }
 
 void CChunkRenderText::StoreGrooveListChunk(CChunk *pChunk, CFile *pFile)		// // //
 {
+	Groove_SongPointer_info_8KBcount = 0;
 	CStringA str;
 	
 	str.Format("%s:\n", pChunk->GetLabel());
 	
 	for (int i = 0; i < pChunk->GetLength(); ++i) {
 		str.AppendFormat("\t.byte $%02X\n", pChunk->GetData(i));
+		Groove_SongPointer_info_8KBcount++;
 	}
-
+	str.AppendFormat("\n;Groove_SongPointer_info_8KBcountNOW: %d\n", Groove_SongPointer_info_8KBcount);
+	write2ndFIXEDsegment_if_over8KB(pChunk, str);
 	m_grooveListStrings.Add(str);
 }
 
@@ -334,7 +369,7 @@ void CChunkRenderText::StoreGrooveChunk(CChunk *pChunk, CFile *pFile)		// // //
 	
 	// str.Format("%s:\n", pChunk->GetLabel());
 	StoreByteString(pChunk, str, DEFAULT_LINE_BREAK);
-
+	str.AppendFormat("\n;Groove_SongPointer_info_8KBcountNOW: %d\n", Groove_SongPointer_info_8KBcount);
 	m_grooveStrings.Add(str);
 }
 
@@ -346,8 +381,11 @@ void CChunkRenderText::StoreSongListChunk(CChunk *pChunk, CFile *pFile)
 
 	for (int i = 0; i < pChunk->GetLength(); ++i) {
 		str.AppendFormat("\t.word %s\n", pChunk->GetDataRefName(i));
+		Groove_SongPointer_info_8KBcount++;
+		Groove_SongPointer_info_8KBcount++;
 	}
-
+	str.AppendFormat("\n;Groove_SongPointer_info_8KBcountNOW: %d\n", Groove_SongPointer_info_8KBcount);
+	write2ndFIXEDsegment_if_over8KB(pChunk, str);
 	m_songListStrings.Add(str);
 }
 
@@ -360,23 +398,34 @@ void CChunkRenderText::StoreSongChunk(CChunk *pChunk, CFile *pFile)
 	for (int i = 0; i < pChunk->GetLength();) {
 		LPCSTR datarefname = pChunk->GetDataRefName(i++);
 		str.AppendFormat("\t.word %s\n", datarefname);
+			Groove_SongPointer_info_8KBcount++;
+			Groove_SongPointer_info_8KBcount++;
 		str.AppendFormat("\t.byte %i\t; frame count\n", pChunk->GetData(i++));
+			Groove_SongPointer_info_8KBcount++;
 		str.AppendFormat("\t.byte %i\t; pattern length\n", pChunk->GetData(i++));
+			Groove_SongPointer_info_8KBcount++;
 		str.AppendFormat("\t.byte %i\t; speed\n", pChunk->GetData(i++));
+			Groove_SongPointer_info_8KBcount++;
 		str.AppendFormat("\t.byte %i\t; tempo\n", pChunk->GetData(i++));
+			Groove_SongPointer_info_8KBcount++;
 		str.AppendFormat("\t.byte %i\t; groove position\n", pChunk->GetData(i++));		// // //
+			Groove_SongPointer_info_8KBcount++;
 		str.AppendFormat("\t.byte <.bank(%s)\t; initial bank\n", datarefname); i++;		// !! !!
+			Groove_SongPointer_info_8KBcount++;
 	}
 
 	str.Append("\n");
-
+	str.AppendFormat("\n;Groove_SongPointer_info_8KBcountNOW: %d\n", Groove_SongPointer_info_8KBcount);
+	str.AppendFormat(";TotalDataSize_MUS_FIXED_for8KBcount: %d\n", ModuleHeader8KBcount + InstrumentlistChunk8KBcount + InstrumentChunk8KBcount + SequenceChunk8KBcount + N163_8KBcount + DPCMlist8KBcount + Groove_SongPointer_info_8KBcount);
+	write2ndFIXEDsegment_if_over8KB(pChunk, str);
 	m_songStrings.Add(str);
 }
+
+
 
 void CChunkRenderText::StoreFrameListChunk(CChunk *pChunk, CFile *pFile)
 {
 	CStringA str;
-
 	unsigned char bank = pChunk->GetBank();
 
 	// Pointers to frames
@@ -497,6 +546,7 @@ void CChunkRenderText::StoreWavesChunk(CChunk *pChunk, CFile *pFile)
 	// don't write anything if data doesn't exist
 	if (len != 0) {
 		str.AppendFormat("\t.byte %i\n", waves);
+		N163_8KBcount++;
 
 		str.Append("\t.byte ");
 
@@ -508,11 +558,12 @@ void CChunkRenderText::StoreWavesChunk(CChunk *pChunk, CFile *pFile)
 				if (i < len - 2)
 					str.Append(", ");
 			}
+			N163_8KBcount++;
 		}
 	}
 
-	str.Append("\n");
-
+	str.AppendFormat("\n;N163_8KBcountNOW: %d\n", N163_8KBcount);
+	write2ndFIXEDsegment_if_over8KB(pChunk, str);
 	m_wavesStrings.Add(str);
 }
 
@@ -523,7 +574,7 @@ void CChunkRenderText::StoreMusicBankSegment(unsigned char bank, CStringA &str)
 	CStringA segmenttxt, memorytxt;
 	bool duplicate = false;
 	str.Format("\t.segment \"MUS_%02X\"\n", bank);
-	memorytxt.Format("  PRG_MUSIC_%02X:     start = $B000, size = $1000, type = ro, file = %%O, fill = yes, fillval = $00, bank = $%02X;\n", bank, bank);
+	memorytxt.Format("  PRG_MUSIC_%02X:     start = $B000, size = $2000, type = ro, file = %%O, fill = yes, fillval = $00, bank = $%02X;\n", bank, bank);
 	segmenttxt.Format("  MUS_%02X:    load = PRG_MUSIC_%02X,     type = ro;\n", bank, bank);
 
 	for (const CStringA string : m_configMemoryAreaStrings)
@@ -543,7 +594,7 @@ void CChunkRenderText::StoreDPCMBankSegment(unsigned char bank, CStringA &str)
 	CStringA segmenttxt, memorytxt;
 	bool duplicate = false;
 	str.AppendFormat("\n\t.segment \"DMC_%02X\"\n", bank);
-	memorytxt.Format("  PRG_DPCM_%02X:      start = $C000, size = $3000, type = ro, file = %%O, fill = yes, fillval = $00, bank = $%02X;\n", bank, bank);
+	memorytxt.Format("  PRG_DPCM_%02X:      start = $C000, size = $2000, type = ro, file = %%O, fill = yes, fillval = $00, bank = $%02X;\n", bank, bank);
 	segmenttxt.Format("  DMC_%02X:    load = PRG_DPCM_%02X,      type = ro;\n", bank, bank);
 
 	for (const auto &string : m_configMemoryAreaStrings)
@@ -655,7 +706,7 @@ void CChunkRenderText::StoreNSFHeader(stNSFHeader Header) const
 	WriteFileString(str, m_pFileNSFHeader);
 }
 
-void CChunkRenderText::StoreNSFConfig(unsigned int DPCMSegment, stNSFHeader Header) const
+void CChunkRenderText::StoreNESConfig(unsigned int DPCMSegment, stNSFHeader Header) const
 {
 	CString str;
 	CString segmentType = (Header.SoundChip & SNDCHIP_FDS ? "rw" : "ro");
@@ -886,7 +937,7 @@ void CChunkRenderText::StoreByteString(const CChunk *pChunk, CStringA &str, int 
 	if (len != 0) {
 		str.Append("\t.byte ");
 
-		for (int i = 0; i < len; ++i) {
+		for (int i = 0; i < len; ++i, SequenceChunk8KBcount++, Groove_SongPointer_info_8KBcount++) {
 			str.AppendFormat("$%02X", pChunk->GetData(i));
 
 			if ((i % LineBreak == (LineBreak - 1)) && (i < len - 1))
@@ -897,4 +948,15 @@ void CChunkRenderText::StoreByteString(const CChunk *pChunk, CStringA &str, int 
 	}
 
 	str.Append("\n");
+}
+
+void CChunkRenderText::write2ndFIXEDsegment_if_over8KB(const CChunk *pChunk, CStringA &str)
+{
+	if (write2ndFIXEDsegment == true){
+		if (ModuleHeader8KBcount + InstrumentlistChunk8KBcount + InstrumentChunk8KBcount + SequenceChunk8KBcount + N163_8KBcount + DPCMlist8KBcount + Groove_SongPointer_info_8KBcount >= 8193)
+		{
+			str.Append("\n.segment \"MUS_FIXED_bank0\"\n");
+			write2ndFIXEDsegment = false;
+		}
+	}
 }

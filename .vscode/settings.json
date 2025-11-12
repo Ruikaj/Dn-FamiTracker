@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.s": "ca65",
+        "*.inc": "ca65",
+        "*.asm": "ca65",
+        "vector": "cpp"
+    }
+}

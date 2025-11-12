@@ -45,7 +45,7 @@ public:
 	void WriteFileString(const CStringA &str, CFile *pFile) const;
 	void StoreNSFStub(unsigned char Header, vibrato_t VibratoStyle, bool LinearPitch, int ActualNamcoChannels, bool UseAllChips, bool IsAssembly = false) const;
 	void StoreNSFHeader(stNSFHeader Header) const;
-	void StoreNSFConfig(unsigned int DPCMSegment, stNSFHeader Header) const;
+	void StoreNESConfig(unsigned int DPCMSegment, stNSFHeader Header) const;
 	void StorePeriods(unsigned int *pLUTNTSC, unsigned int *pLUTPAL, unsigned int *pLUTSaw, unsigned int *pLUTVRC7, unsigned int *pLUTFDS, unsigned int *pLUTN163) const;
 	void StoreVibrato(unsigned int *pLUTVibrato) const;
 	void StoreUpdateExt(unsigned char Expansion) const;
@@ -82,6 +82,7 @@ private:
 	void DumpStrings(const CStringA &preStr, const CStringA &postStr, CStringArray &stringArray, CFile *pFile) const;
 	void StoreByteString(const char *pData, int Len, CStringA &str, int LineBreak) const;
 	void StoreByteString(const CChunk *pChunk, CStringA &str, int LineBreak) const;
+	void write2ndFIXEDsegment_if_over8KB(const CChunk *pChunk, CStringA &str);
 
 private:
 	void StoreHeaderChunk(CChunk *pChunk, CFile *pFile);

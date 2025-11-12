@@ -2810,7 +2810,7 @@ void CCompiler::WriteAssembly(CFilePtrArray &files, bool bExtraData, stNSFHeader
 		Render.SetExtraDataFiles(pFileNSFStub, pFileNSFHeader, pFileNSFConfig, pFilePeriods, pFileVibrato, pFileMultiChipEnable, pFileMultiChipUpdate);
 		Render.StoreNSFStub(Header.SoundChip, m_pDocument->GetVibratoStyle(), m_pDocument->GetLinearPitch(), m_iActualNamcoChannels, UseAllChips, true);
 		Render.StoreNSFHeader(Header);
-		Render.StoreNSFConfig(m_iSampleStart, Header);
+		Render.StoreNESConfig(m_iSampleStart, Header);
 		Render.StorePeriods(LUTNTSC, LUTPAL, LUTSaw, LUTVRC7, LUTFDS, LUTN163);
 		Render.StoreVibrato(LUTVibrato);
 		if (UseAllChips) {
