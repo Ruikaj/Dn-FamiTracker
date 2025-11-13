@@ -1125,11 +1125,13 @@ void CCompiler::ExportASM(LPCTSTR lpszFileName, int MachineType, bool ExtraData)
 			return;
 		}
 
-		// NSF config file
+		// NSF config file (for N163 NES file) 
 		size_t OutputFileNSFConfigIndex = OutputFiles.size();
 		errormsg = "Error: Could not open output NSF config file\n";
-		if (!OpenArrayFile(OutputFiles, LPCTSTR(FilePath + "nsf.cfg"), errormsg)) {
-			return;
+		if (m_iActualChip & SNDCHIP_N163){
+			if (!OpenArrayFile(OutputFiles, LPCTSTR(FilePath + "N163_19.cfg"), errormsg)) {
+				return;
+			}
 		}
 
 		// period table file
@@ -2810,7 +2812,7 @@ void CCompiler::WriteAssembly(CFilePtrArray &files, bool bExtraData, stNSFHeader
 		Render.SetExtraDataFiles(pFileNSFStub, pFileNSFHeader, pFileNSFConfig, pFilePeriods, pFileVibrato, pFileMultiChipEnable, pFileMultiChipUpdate);
 		Render.StoreNSFStub(Header.SoundChip, m_pDocument->GetVibratoStyle(), m_pDocument->GetLinearPitch(), m_iActualNamcoChannels, UseAllChips, true);
 		Render.StoreNSFHeader(Header);
-		Render.StoreNESConfig(m_iSampleStart, Header);
+		Render.StoreNSFConfig(m_iSampleStart, Header);
 		Render.StorePeriods(LUTNTSC, LUTPAL, LUTSaw, LUTVRC7, LUTFDS, LUTN163);
 		Render.StoreVibrato(LUTVibrato);
 		if (UseAllChips) {
