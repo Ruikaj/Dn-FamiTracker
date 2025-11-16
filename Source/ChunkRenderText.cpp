@@ -832,13 +832,13 @@ void CChunkRenderText::StoreNSFConfig(unsigned int DPCMSegment, stNSFHeader Head
 			str.Append(string);
 
 		str.Append("\n");
-		str.Append("\tCODE_C000_bank3E:  load = PRG8K_C000_3E, type = ro;\n");
-		str.Append("\tRODATA_C000_bank3E:  load = PRG8K_C000_3E, type = ro;\n");
+		str.Append("\tCODE_C000_bank3E: load = PRG8K_C000_3E, type = ro;\n");
+		str.Append("\tRODATA:  			load = PRG8K_C000_3E, type = ro;\n");
 		str.Append("\n");
-		str.Append("\tFT_DRIVER1:  load = PRGFIXED_E000, type = ro;\n");
-		str.Append("\tCODE_E000:   load = PRGFIXED_E000, type = ro;\n");
-		str.Append("\tRODATA:      load = PRGFIXED_E000, type = ro;\n");
-		str.Append("\tVECTORS:     load = PRGFIXED_E000, type = ro,  start = $FFFA;\n");
+		str.Append("\tFT_DRIVER1:  			load = PRGFIXED_E000, type = ro;\n");
+		str.Append("\tCODE_E000:   			load = PRGFIXED_E000, type = ro;\n");
+		str.Append("\tRODATA_PRGFIXED_E000: load = PRGFIXED_E000, type = ro;\n");
+		str.Append("\tVECTORS:     			load = PRGFIXED_E000, type = ro,  start = $FFFA;\n");
 		str.Append("\n");
 		str.Append("\tBG1:  load = CHR1K_0000_00, type = ro;\n");
 		str.Append("\tBG2:  load = CHR1K_0400_20, type = ro;\n");
