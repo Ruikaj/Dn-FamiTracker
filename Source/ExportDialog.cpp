@@ -37,13 +37,13 @@
 
 // Define internal exporters
 const LPTSTR CExportDialog::DEFAULT_EXPORT_NAMES[] = {
-	_T("NSF - Nintendo Sound File"),
+	_T("NSF - Nintendo Sound File (exportable total instrument: 16KB max)"),
 	_T("NSFe - Extended Nintendo Sound File"),		// // //
 	_T("NSF2 - Nintendo Sound File v2 Extension"),		// !! !!
 	_T("NES - iNES ROM image"),
 	_T("BIN - Raw music data"),
 	_T("PRG - Clean 32kB ROM image"),
-	_T("ASM - Assembly source"),
+	_T("ASM - Assembly source (for .NES format)"),
 };
 
 const exportFunc_t CExportDialog::DEFAULT_EXPORT_FUNCS[] = {

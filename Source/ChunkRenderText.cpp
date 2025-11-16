@@ -432,8 +432,6 @@ void CChunkRenderText::StoreSongChunk(CChunk *pChunk, CFile *pFile)
 	m_songStrings.Add(str);
 }
 
-
-
 void CChunkRenderText::StoreFrameListChunk(CChunk *pChunk, CFile *pFile)
 {
 	CStringA str;
@@ -631,7 +629,7 @@ void CChunkRenderText::StoreDPCMBankSegment(unsigned char bank, CStringA &str)
 void CChunkRenderText::write_iniBankDefine(CStringA &str)
 {
 	CStringA segmenttxt, memorytxt;
-	str.AppendFormat("\n\t.ifndef FIRST_MUSICA000BANK\n\t\tFIRST_MUSICA000BANK = %i\n\t.endif\n", (lastMemoryMusicbank - TotalMemoryMusicbank) + 2);
+	str.AppendFormat("\n\t.ifndef FIRST_MUSICA000BANK\n\t\tFIRST_MUSICA000BANK = %i\n\t.endif\n", (lastMemoryMusicbank - TotalMemoryMusicbank) + 1);
 	str.AppendFormat("\n\t.ifndef FIRST_DPCMC000BANK\n\t\tFIRST_DPCMC000BANK = %i\n\t.endif\n", firstMemoryDPCMbank);
 }
 
@@ -812,7 +810,7 @@ void CChunkRenderText::StoreNSFConfig(unsigned int DPCMSegment, stNSFHeader Head
 	}
 	else {
 		str.Append("  PRG:              start = $8000, size = $8000, type = " + segmentType + ", file = %O, bank = $00;\n");
-	str.Append("  FTR:              start = $0000, size = $4000, type = ro, file = %O, define = yes;\n");
+		str.Append("  FTR:              start = $0000, size = $4000, type = ro, file = %O, define = yes;\n");
 	}
 	str.Append("}\n\n");
 
@@ -833,6 +831,9 @@ void CChunkRenderText::StoreNSFConfig(unsigned int DPCMSegment, stNSFHeader Head
 		for (const auto &string : m_configSegmentStrings)
 			str.Append(string);
 
+		str.Append("\n");
+		str.Append("\tCODE_C000_bank3E:  load = PRG8K_C000_3E, type = ro;\n");
+		str.Append("\tRODATA_C000_bank3E:  load = PRG8K_C000_3E, type = ro;\n");
 		str.Append("\n");
 		str.Append("\tFT_DRIVER1:  load = PRGFIXED_E000, type = ro;\n");
 		str.Append("\tCODE_E000:   load = PRGFIXED_E000, type = ro;\n");
@@ -1003,7 +1004,7 @@ void CChunkRenderText::StoreEnableExt(std::vector<char> &ChannelOrder) const
 	WriteFileString(str, m_pFileMultiChipEnable);
 }
 
-void CChunkRenderText::SetExtraDataFiles(CFile *pFileNSFStub, CFile* pFileNSFHeader, CFile* pFileNSFConfig, CFile* pFilePeriods, CFile* pFileVibrato, CFile *pFileMultiChipEnable, CFile *pFileMultiChipUpdate)
+void CChunkRenderText::SetExtraDataFiles(CFile *pFileNSFStub, CFile *pFileNSFHeader, CFile *pFileNSFConfig, CFile *pFilePeriods, CFile *pFileVibrato, CFile *pFileMultiChipEnable, CFile *pFileMultiChipUpdate, CFile *pFileSongInfo)
 {
 	m_pFileNSFStub = pFileNSFStub;
 	m_pFileNSFHeader = pFileNSFHeader;
@@ -1012,6 +1013,23 @@ void CChunkRenderText::SetExtraDataFiles(CFile *pFileNSFStub, CFile* pFileNSFHea
 	m_pFileVibrato = pFileVibrato;
 	m_pFileMultiChipEnable = pFileMultiChipEnable;
 	m_pFileMultiChipUpdate = pFileMultiChipUpdate;
+	m_pFileSongInfo = pFileSongInfo;
+}
+
+void CChunkRenderText::StoreSongInfo(const CStringA& name, const CStringA& artist, const CStringA& copyright) const
+{
+	if (m_pFileSongInfo == nullptr)
+		return;
+
+	CStringA str;
+	str.Format(
+		"; Song information\n\n"
+		"song_title:    .db \"%s\"\n"
+		"song_artist:   .db \"%s\"\n"
+		"song_copyright:.db \"%s\"\n",
+		(LPCSTR)name, (LPCSTR)artist, (LPCSTR)copyright);
+
+	WriteFileString(str, m_pFileSongInfo);
 }
 
 void CChunkRenderText::SetBankSwitching(bool bBankSwitched)

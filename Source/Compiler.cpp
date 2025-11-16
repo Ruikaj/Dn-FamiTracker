@@ -175,6 +175,10 @@ CCompiler::CCompiler(CFamiTrackerDoc *pDoc, CCompilerLog *pLogger) :
 	m_iActualChip = m_pDocument->GetExpansionChip();		// // //
 	m_bMultiChip = ((m_iActualChip & (m_iActualChip - 1)) != 0);
 	m_iActualNamcoChannels = m_pDocument->GetNamcoChannels();
+
+	m_strSongName = m_pDocument->GetSongName();
+	m_strArtistName = m_pDocument->GetSongArtist();
+	m_strCopyright = m_pDocument->GetSongCopyright();
 }
 
 CCompiler::~CCompiler()
@@ -544,7 +548,8 @@ void CCompiler::ExportNSF2(LPCTSTR lpszFileName, int MachineType)
 	if (m_bBankSwitched) {
 		// Expand and allocate label addresses
 		AddBankswitching();
-		if (!ResolveLabelsBankswitched()) {
+		if (!ResolveLabelsBankswitched())
+		{
 			Cleanup();
 			return;
 		}
@@ -2776,6 +2781,16 @@ void CCompiler::WriteAssembly(CFilePtrArray &files, bool bExtraData, stNSFHeader
 	CFile *pFile = files.at(OutputFileASMIndex).get();
 	CChunkRenderText Render(pFile);
 
+	// Add a new file for song info
+	const size_t FileSongInfoIndex = files.size();
+	if (bExtraData)
+	{
+		CString path = files[OutputFileASMIndex]->GetFilePath();
+		path.Replace(_T(".asm"), _T("_song_info.asm"));
+		if (!OpenArrayFile(files, path, "song info file"))
+			return;
+	}
+
 	// Write export comments
 	// !! !! use CCompiler's document pointer instead of poking the main UI
 	Render.WriteFileString(CStringA("; " APP_NAME " exported music data: "), pFile);
@@ -2790,7 +2805,21 @@ void CCompiler::WriteAssembly(CFilePtrArray &files, bool bExtraData, stNSFHeader
 			Render.StoreSamples(m_vSamples, pChunk);
 	Print(" * DPCM samples size: %i bytes\n", m_iSamplesSize);
 
-	if (bExtraData) {
+	CChunkRenderText renderText(files[OutputFileASMIndex].get());
+	Render.SetBankSwitching(m_bBankSwitched);
+	Render.SetExtraDataFiles(
+		bExtraData ? files[FileNSFStubIndex].get() : nullptr,
+		bExtraData ? files[FileNSFHeaderIndex].get() : nullptr,
+		bExtraData ? files[FileNSFConfigIndex].get() : nullptr,
+		bExtraData ? files[FilePeriodsIndex].get() : nullptr,
+		bExtraData ? files[FileVibratoIndex].get() : nullptr,
+		bExtraData ? files[FileMultiChipEnableIndex].get() : nullptr,
+		bExtraData ? files[FileMultiChipUpdateIndex].get() : nullptr,
+		bExtraData ? files[FileSongInfoIndex].get() : nullptr // Pass the new file pointer
+	);
+
+	if (bExtraData)
+	{
 		CFile *pFileNSFStub = files.at(FileNSFStubIndex).get();
 		CFile *pFileNSFHeader = files.at(FileNSFHeaderIndex).get();
 		CFile *pFileNSFConfig = files.at(FileNSFConfigIndex).get();
@@ -2798,6 +2827,7 @@ void CCompiler::WriteAssembly(CFilePtrArray &files, bool bExtraData, stNSFHeader
 		CFile *pFileVibrato = files.at(FileVibratoIndex).get();
 		CFile *pFileMultiChipEnable = files.at(FileMultiChipEnableIndex).get();
 		CFile *pFileMultiChipUpdate = files.at(FileMultiChipUpdateIndex).get();
+		CFile *pFileSongInfo = files[FileSongInfoIndex].get();
 
 		unsigned int LUTNTSC[NOTE_COUNT]{};
 		unsigned int LUTPAL[NOTE_COUNT]{};
@@ -2809,7 +2839,7 @@ void CCompiler::WriteAssembly(CFilePtrArray &files, bool bExtraData, stNSFHeader
 
 		ReadPeriodVibratoTables(MachineType, LUTNTSC, LUTPAL, LUTSaw, LUTVRC7, LUTFDS, LUTN163, LUTVibrato);
 
-		Render.SetExtraDataFiles(pFileNSFStub, pFileNSFHeader, pFileNSFConfig, pFilePeriods, pFileVibrato, pFileMultiChipEnable, pFileMultiChipUpdate);
+		Render.SetExtraDataFiles(pFileNSFStub, pFileNSFHeader, pFileNSFConfig, pFilePeriods, pFileVibrato, pFileMultiChipEnable, pFileMultiChipUpdate, pFileSongInfo);
 		Render.StoreNSFStub(Header.SoundChip, m_pDocument->GetVibratoStyle(), m_pDocument->GetLinearPitch(), m_iActualNamcoChannels, UseAllChips, true);
 		Render.StoreNSFHeader(Header);
 		Render.StoreNSFConfig(m_iSampleStart, Header);
@@ -2819,6 +2849,7 @@ void CCompiler::WriteAssembly(CFilePtrArray &files, bool bExtraData, stNSFHeader
 			if (m_bMultiChip) Render.StoreEnableExt(m_vChanEnable);
 			Render.StoreUpdateExt(Header.SoundChip);
 		}
+		Render.StoreSongInfo(m_strSongName, m_strArtistName, m_strCopyright);
 	}
 }
 
@@ -2865,7 +2896,7 @@ void CCompiler::WriteBinary(CFilePtrArray &files, bool bExtraData, stNSFHeader H
 
 		// get an instance of CChunkRenderText to use its extra data plotting
 		CChunkRenderText RenderText(nullptr);
-		RenderText.SetExtraDataFiles(pFileNSFStub, pFileNSFHeader, pFileNSFConfig, pFilePeriods, pFileVibrato, pFileMultiChipEnable, pFileMultiChipUpdate);
+	//	RenderText.SetExtraDataFiles(pFileNSFStub, pFileNSFHeader, pFileNSFConfig, pFilePeriods, pFileVibrato, pFileMultiChipEnable, pFileMultiChipUpdate);
 		RenderText.StoreNSFStub(Header.SoundChip, m_pDocument->GetVibratoStyle(), m_pDocument->GetLinearPitch(), m_iActualNamcoChannels, UseAllChips);
 		RenderText.StoreNSFHeader(Header);
 		RenderText.StorePeriods(LUTNTSC, LUTPAL, LUTSaw, LUTVRC7, LUTFDS, LUTN163);
