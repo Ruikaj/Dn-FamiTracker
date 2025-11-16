@@ -1024,9 +1024,9 @@ void CChunkRenderText::StoreSongInfo(const CStringA& name, const CStringA& artis
 	CStringA str;
 	str.Format(
 		"; Song information\n\n"
-		"song_title:    .byte \"%s\" .byte $00\n" 
-		"song_artist:   .byte \"%s\" .byte $00\n"
-		"song_copyright:.byte \"%s\" .byte $00\n",
+		"song_title:    .byte \"%s\" \n.byte $00\n" 
+		"song_artist:   .byte \"%s\" \n.byte $00\n"
+		"song_copyright:.byte \"%s\" \n.byte $00\n",
 		(LPCSTR)name, (LPCSTR)artist, (LPCSTR)copyright);
 
 	WriteFileString(str, m_pFileSongInfo);
