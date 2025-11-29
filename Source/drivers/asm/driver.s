@@ -580,7 +580,7 @@ ft_bankswitch:
 ;	sta $5FFA
 
 	;ADD customcode ________________________________________________
-	sta $5FFD
+	sta $5FFE
 	;END customcode ________________________________________________
 
 	rts
@@ -597,7 +597,7 @@ ft_bankswitch2:
 	;ADD customcode ________________________________________________
 	sec
 	sbc #$03 ;subtraction for playing the correct DPCM sample address
-	sta $5FFE
+	sta $5FFF
 	clc
 	;END customcode ________________________________________________
 

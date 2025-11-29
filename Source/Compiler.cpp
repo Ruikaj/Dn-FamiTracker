@@ -108,15 +108,15 @@ const int CCompiler::PATTERN_CHUNK_INDEX		= 0;		// Fixed at 0 for the moment
 
 const int CCompiler::PAGE_SIZE					= 0x1000;
 const int CCompiler::PAGE_START					= 0x8000;
-const int CCompiler::PAGE_BANKED				= 0xD000;	// 0xD000 -> 0xDFFF
-const int CCompiler::PAGE_SAMPLES				= 0xE000;
+const int CCompiler::PAGE_BANKED				= 0xE000;	// 0xE000 -> 0xEFFF
+const int CCompiler::PAGE_SAMPLES				= 0xF000;
 
-const int CCompiler::PATTERN_SWITCH_BANK		= 5;		// 0xD000 -> 0xDFFF 
+const int CCompiler::PATTERN_SWITCH_BANK		= 6;		// 0xE000 -> 0xEFFF 
 
 const int CCompiler::DPCM_PAGE_WINDOW			= 1;		// Number of switchable pages in the DPCM area
-const int CCompiler::DPCM_SWITCH_ADDRESS		= 0xF000;	// Switch to new banks when reaching this address
+const int CCompiler::DPCM_SWITCH_ADDRESS		= 0xFFF9;	// Switch to new banks when reaching this address
 
-const bool CCompiler::LAST_BANK_FIXED			= true;		// Fix for TNS and Everdrive carts(if true)
+const bool CCompiler::LAST_BANK_FIXED			= false;		// Fix for TNS and Everdrive carts(if true)
 
 // Flag byte flags
 const int CCompiler::FLAG_BANKSWITCHED	= 1 << 0;
@@ -1353,10 +1353,10 @@ void CCompiler::CreateHeader(stNSFHeader *pHeader, int MachineType, unsigned int
 	pHeader->Speed_NTSC = SpeedNTSC; //0x411A; // default ntsc speed
 
 	if (m_bBankSwitched) {
-		for (int i = 0; i < 6; ++i) {
+		for (int i = 0; i < 7; ++i) {
 			unsigned int SampleBank = m_iFirstSampleBank + i;
 			pHeader->BankValues[i] = i;
-			pHeader->BankValues[i + 6] = (SampleBank < m_iLastBank) ? SampleBank : m_iLastBank;
+			pHeader->BankValues[i + 7] = (SampleBank < m_iLastBank) ? SampleBank : m_iLastBank;
 		}
 		if (LAST_BANK_FIXED) {
 			// Bind last page to last bank
@@ -1747,16 +1747,16 @@ bool CCompiler::CollectLabelsBankswitched(CMap<CStringA, LPCSTR, int, int> &labe
 	int FixedBankMaxSize = PAGE_BANKED - PAGE_START;
 	int FixedBankPages = PATTERN_SWITCH_BANK + 1;
 
-	if (Offset + DriverSizeAndNSFDRV > 0x5000) {
+	if (Offset + DriverSizeAndNSFDRV > 0x6000) {
 		// Instrument data did not fit within the limit, display an error and abort?
 		Print("Error: Instrument, frame & pattern data can't fit within bank allocation, can't export file!\n");
-		Print(" * $%02X bytes used out of $5000 allowed\n", Offset + DriverSizeAndNSFDRV);
+		Print(" * $%02X bytes used out of $6000 allowed\n", Offset + DriverSizeAndNSFDRV);
 		return false;
 	}
 
 	unsigned int Track = 0;
 
-	// The switchable area is $D000-$DFFF
+	// The switchable area is $E000-$F000
 	for (CChunk *pChunk : m_vChunks) {
 		int Size = pChunk->CountDataSize();
 
