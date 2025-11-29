@@ -75,13 +75,13 @@
  * - $F000 - $FFFF: Fixed to last bank for compatibility with TNS HFC carts
  *
  * 
- * Bankswitched file layout (extend pages for instrument data):
+ * Bankswitched file layout (extend pages for instrument data - 16KB):
  *
  * - $8000 - $9FFF: Music driver data
- * - $A000 - $CFFF: Non-Bankswitched song data (instruments(seqences), 3 pages;12kb)
- * - $D000 - $DFFF: Swichted part of song data (frames + patterns, 1 page only)
- * - $E000 - $EFFF: Samples (1 page)
- * - $F000 - $FFFF: Fixed to last bank for compatibility with TNS HFC carts
+ * - $A000 - $DFFF: Non-Bankswitched song data (instruments(seqences), 4 pages;16kb)
+ * - $E000 - $EFFF: Swichted part of song data (frames + patterns, 1 page only)
+ * - $F000 - $FFFF: Samples (1 pages)
+ * 
  *
  * Non-bankswitched, compressed layout:
  *
