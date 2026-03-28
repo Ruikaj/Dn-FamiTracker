@@ -71,7 +71,7 @@ private:
 
 	unsigned int	m_iDuration;
 	unsigned int	m_iCurrentDefaultDuration;
-	bool			m_bDSamplesAccessed[OCTAVE_RANGE * NOTE_RANGE]; // <- check the range, its not optimal right now
+	bool			m_bDSamplesAccessed[MAX_DSAMPLES]; // <- check the range, its not optimal right now
 	bool			m_bUseAllChips;		// !! !! we store a local copy to accomodate both NSF and .asm/.bin export
 	unsigned int	m_iHash;
 	unsigned int	*m_pInstrumentList;
