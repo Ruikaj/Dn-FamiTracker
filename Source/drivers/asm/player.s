@@ -1555,6 +1555,19 @@ StoreDPCM:							; Special case for DPCM
 
 	clc								; Multiply the DPCM instrument index by 3
 	pla								; and store in Temp16
+
+;ADD customcode ________________________________________________
+	cmp #85
+	bne skip_incOver8bitDPCMindex_forIndex85
+		inc fixOver8bitDPCMindex_forIndex85
+		jmp skip_incOver8bitDPCMindex
+	skip_incOver8bitDPCMindex_forIndex85:
+	cmp #86
+	bcc skip_incOver8bitDPCMindex
+		inc fixOver8bitDPCMindex
+	skip_incOver8bitDPCMindex:
+;END customcode ________________________________________________
+
 	pha
 	asl a
 	adc var_dpcm_inst_list
@@ -1590,14 +1603,36 @@ StoreDPCM:							; Special case for DPCM
 	lda var_dpcm_pointers + 1
 	sta var_Temp16 + 1
 
+;ADD customcode ________________________________________________
+	lda fixOver8bitDPCMindex
+	beq skip_fixOver8bitDPCMindex
+		jsr inc16bitDPCMindex
+	skip_fixOver8bitDPCMindex:
+;END customcode ________________________________________________
+
 	lda (var_Temp16), y				; Sample address
 	sta var_ch_SamplePtr
 	iny
+
+;ADD customcode ________________________________________________
+	lda fixOver8bitDPCMindex_forIndex85
+	beq skip_fixOver8bitDPCMindex_forIndex85
+		jsr inc16bitDPCMindex
+	skip_fixOver8bitDPCMindex_forIndex85:
+;END customcode ________________________________________________
+
 	lda (var_Temp16), y				; Sample size
 	sta var_ch_SampleLen
 	iny
 	lda (var_Temp16), y				; Sample bank
 	sta var_ch_SampleBank
+
+;ADD customcode ________________________________________________
+	SettingDPCM_end:
+	lda #0
+	sta fixOver8bitDPCMindex_forIndex85
+	sta fixOver8bitDPCMindex
+;END customcode ________________________________________________
 
 	ldy var_Temp
 
@@ -1607,6 +1642,15 @@ StoreDPCM:							; Special case for DPCM
 
 	rts
 .endif
+
+;ADD customcode ________________________________________________
+inc16bitDPCMindex:
+	lda var_Temp16 + 1
+	clc 
+	adc #1
+	sta var_Temp16 + 1
+	rts
+;END customcode ________________________________________________
 
 ft_limit_note:		;;; ;; ;
 ;	pha
