@@ -374,6 +374,7 @@ ft_read_note:
 	jmp @NoteOff
 :	
 	;ADD customcode ________________________________________________
+	php
 	cpx #DPCM_OFFSET
 	bne @skip_forExtendDPCMindex
 		plp
