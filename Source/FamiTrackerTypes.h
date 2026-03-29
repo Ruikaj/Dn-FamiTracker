@@ -52,10 +52,10 @@ const int MAX_FRAMES = 256;		// // //
 const int MAX_PATTERN_LENGTH = 256;
 
 // Maximum number of DPCM samples, cannot be increased unless the NSF driver is modified.
-const int MAX_DSAMPLES = 171;
+const int MAX_DSAMPLES = 127;
 
 // Sample space available (from $C000-$FFFF), may now switch banks
-const int MAX_SAMPLE_SPACE = 0x40000;	// 256kB
+const int MAX_SAMPLE_SPACE = 0x80000;	// change from 0x40000 256kB
 
 // Number of effect columns allowed
 const int MAX_EFFECT_COLUMNS = 4;

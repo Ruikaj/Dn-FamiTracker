@@ -22,7 +22,7 @@
 #include <memory>
 #include "DSampleManager.h"
 
-const unsigned int CDSampleManager::MAX_DSAMPLES = 171;
+const unsigned int CDSampleManager::MAX_DSAMPLES = 127;
 
 CDSampleManager::CDSampleManager() : m_pDSample(), m_iTotalSize(0U)
 {
