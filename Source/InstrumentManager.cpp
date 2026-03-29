@@ -29,7 +29,7 @@
 #include "SequenceManager.h"
 #include "DSampleManager.h"
 
-const int CInstrumentManager::MAX_INSTRUMENTS = 254;
+const int CInstrumentManager::MAX_INSTRUMENTS = 127;
 const int CInstrumentManager::SEQ_MANAGER_COUNT = 5;
 
 CInstrumentManager::CInstrumentManager(CFTMComponentInterface *pInterface) :

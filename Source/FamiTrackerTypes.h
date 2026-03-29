@@ -30,7 +30,7 @@
  */
 
 // Maximum number of instruments to use
-const int MAX_INSTRUMENTS = 254;
+const int MAX_INSTRUMENTS = 127;
 
 // Hold instrument index
 const int HOLD_INSTRUMENT = 0xFF;		// // // 050B
