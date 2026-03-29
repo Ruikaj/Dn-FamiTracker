@@ -2382,7 +2382,6 @@ void CCompiler::CreateSampleList()
 
 	// Store sample instruments
 	unsigned int Item = 0;
-	unsigned int SampleIndex8bitCarryNum = 0;
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
 		if (m_pDocument->IsInstrumentUsed(i) && m_pDocument->GetInstrumentType(i) == INST_2A03) {
 			auto pInstrument = std::static_pointer_cast<CInstrument2A03>(m_pDocument->GetInstrument(i));

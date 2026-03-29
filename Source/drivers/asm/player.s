@@ -359,6 +359,10 @@ ft_read_pattern:
 ft_read_note:
 	nop									;;; ;; ;
 	lda (var_Temp_Pattern), y			; Read pattern command
+	;ADD customcode ________________________________________________
+	sta hold_DPCMSampleIndex
+	;END customcode ________________________________________________
+
 	bpl :+
 	jmp @Effect
 :	bne :+								; Rest
@@ -368,7 +372,17 @@ ft_read_note:
 	bne :+
 	jsr ft_push_echo_buffer
 	jmp @NoteOff
-:	cmp #$7E
+:	
+	;ADD customcode ________________________________________________
+	cpx #DPCM_OFFSET
+	bne @skip_forExtendDPCMindex
+		plp
+		jmp @NoEcho
+	@skip_forExtendDPCMindex:
+	plp
+	;END customcode ________________________________________________
+
+	cmp #$7E
 ;	beq @NoteRelease					; Note release
 	bne :+
 	jmp @NoteRelease
@@ -1452,6 +1466,9 @@ ft_translate_freq:
 
 	sec
 	sbc #$01
+	;ADD customcode ________________________________________________
+	dec hold_DPCMSampleIndex
+	;END customcode ________________________________________________
 
 	cpx #APU_NOI				;;; ;; ; Check if noise
 	beq @Noise
@@ -1557,6 +1574,11 @@ StoreDPCM:							; Special case for DPCM
 	pla								; and store in Temp16
 
 ;ADD customcode ________________________________________________
+	cmp hold_DPCMSampleIndex
+	beq skip_hold_DPCMSampleIndex
+		lda hold_DPCMSampleIndex
+	skip_hold_DPCMSampleIndex:
+
 	cmp #85
 	bne skip_incOver8bitDPCMindex_forIndex85
 		inc fixOver8bitDPCMindex_forIndex85

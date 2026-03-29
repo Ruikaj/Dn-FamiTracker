@@ -437,6 +437,7 @@ var_ch_EchoBuffer:		.res (ECHO_BUFFER_LENGTH + 1) * CHANNELS
 ;ADD customcode ________________________________________________
 fixOver8bitDPCMindex_forIndex85: .res 1
 fixOver8bitDPCMindex: .res 1
+hold_DPCMSampleIndex: .res 1
 ;END customcode ________________________________________________
 
 ; End of variable space
