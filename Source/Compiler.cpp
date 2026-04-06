@@ -108,7 +108,7 @@ const int CCompiler::PATTERN_CHUNK_INDEX		= 0;		// Fixed at 0 for the moment
 
 const int CCompiler::PAGE_SIZE					= 0x1000;
 const int CCompiler::PAGE_START					= 0x8000;
-const int CCompiler::PAGE_BANKED				= 0xD000;	// 0xD000 -> 0xDFFF
+const int CCompiler::PAGE_BANKED				= 0xC000;	// 0xD000 -> 0xDFFF
 const int CCompiler::PAGE_SAMPLES				= 0xE000;
 
 const int CCompiler::PATTERN_SWITCH_BANK		= 5;		// 0xD000 -> 0xDFFF 
@@ -176,9 +176,7 @@ CCompiler::CCompiler(CFamiTrackerDoc *pDoc, CCompilerLog *pLogger) :
 	m_bMultiChip = ((m_iActualChip & (m_iActualChip - 1)) != 0);
 	m_iActualNamcoChannels = m_pDocument->GetNamcoChannels();
 
-	m_strSongName = m_pDocument->GetSongName();
-	m_strArtistName = m_pDocument->GetSongArtist();
-	m_strCopyright = m_pDocument->GetSongCopyright();
+
 }
 
 CCompiler::~CCompiler()
@@ -1130,9 +1128,16 @@ void CCompiler::ExportASM(LPCTSTR lpszFileName, int MachineType, bool ExtraData)
 			return;
 		}
 
-		// NSF config file (for N163 NES file) 
+		// NSF config file
 		size_t OutputFileNSFConfigIndex = OutputFiles.size();
 		errormsg = "Error: Could not open output NSF config file\n";
+		//for 2a03 NES file (mapper 268)
+		if (m_iActualChip == SNDCHIP_NONE){
+			if (!OpenArrayFile(OutputFiles, LPCTSTR(FilePath + "2a03_268.cfg"), errormsg)) {
+				return;
+			}
+		}
+		//for N163 NES file 
 		if (m_iActualChip & SNDCHIP_N163){
 			if (!OpenArrayFile(OutputFiles, LPCTSTR(FilePath + "N163_19.cfg"), errormsg)) {
 				return;
@@ -1747,10 +1752,10 @@ bool CCompiler::CollectLabelsBankswitched(CMap<CStringA, LPCSTR, int, int> &labe
 	int FixedBankMaxSize = PAGE_BANKED - PAGE_START;
 	int FixedBankPages = PATTERN_SWITCH_BANK + 1;
 
-	if (Offset + DriverSizeAndNSFDRV > 0x5000) {
+	if (Offset + DriverSizeAndNSFDRV > 0x4000) {
 		// Instrument data did not fit within the limit, display an error and abort?
 		Print("Error: Instrument, frame & pattern data can't fit within bank allocation, can't export file!\n");
-		Print(" * $%02X bytes used out of $5000 allowed\n", Offset + DriverSizeAndNSFDRV);
+		Print(" * $%02X bytes used out of $4000 allowed\n", Offset + DriverSizeAndNSFDRV);
 		return false;
 	}
 
@@ -2849,7 +2854,7 @@ void CCompiler::WriteAssembly(CFilePtrArray &files, bool bExtraData, stNSFHeader
 			if (m_bMultiChip) Render.StoreEnableExt(m_vChanEnable);
 			Render.StoreUpdateExt(Header.SoundChip);
 		}
-		Render.StoreSongInfo(m_strSongName, m_strArtistName, m_strCopyright);
+		Render.StoreSongInfo(Header);
 	}
 }
 

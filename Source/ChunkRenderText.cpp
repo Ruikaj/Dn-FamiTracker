@@ -174,7 +174,8 @@ void CChunkRenderText::StoreSamples(const std::vector<const CDSample*> &Samples,
 		CStringA label;
 		label.Format(LABEL_SAMPLE, i);		// // //
 		// take advantage of the fact that the list is stored in the same order as the samples vector
-		unsigned char bank = (unsigned char)pChunk->GetData((int(i)*3) + 2);
+	//	unsigned char bank = (unsigned char)pChunk->GetData((int(i)*3) + 2);
+		unsigned char bank = int(i);
 
 		if (m_bBankSwitched)
 			StoreDPCMBankSegment(bank, str);
@@ -254,7 +255,7 @@ void CChunkRenderText::StoreInstrumentListChunk(CChunk *pChunk, CFile *pFile)
 		InstrumentlistChunk8KBcount++;
 		InstrumentlistChunk8KBcount++;
 	}
-	str.AppendFormat("\n;N163_Instrumentlist8KBcountNOW: %d\n", InstrumentlistChunk8KBcount);
+	str.AppendFormat("\n;Instrumentlist8KBcountNOW: %d\n", InstrumentlistChunk8KBcount);
 	m_instrumentListStrings.Add(str);
 }
 
@@ -731,81 +732,96 @@ void CChunkRenderText::StoreNSFHeader(stNSFHeader Header) const
 	WriteFileString(str, m_pFileNSFHeader);
 }
 
+//NESファイルの為の.cfgフォーマット
 void CChunkRenderText::StoreNSFConfig(unsigned int DPCMSegment, stNSFHeader Header) const
 {
 	CString str;
 	CString segmentType = (Header.SoundChip & SNDCHIP_FDS ? "rw" : "ro");
 
-	str.Append("MEMORY {\n");
-	str.Append("\tZP:      start = $00,   size = $0100,  type = rw, file = \"\";\n");
-	str.Append("\tOAM:     start = $0200,  size = $0100,  type = rw, file = \"\";\n");
-	str.Append("\tRAM:     start = $0300,  size = $0500,  type = rw, file = \"\";\n");
-	str.Append("\tHDR:     start = $0000,   size = $0010,  type = ro, file = %O, fill = yes, fillval = $00;\n");
-	str.Append("\tSRAM:    start = $6000, size = $2000,  type = rw;\n");
+	//PRG memory bank ___________________________________________________________
 
-	//PRG memory bank
 	PRGFIXED_blankbanks_fromMemoryStartbank = lastMemoryMusicbank - TotalMemoryMusicbank;
 	MemoryMusicbank_countdown = TotalMemoryMusicbank;
 
 	if (m_bBankSwitched) {
-		//$8000
-		str.Append("\n");
-		str.Append("#PRG-ROM 64banks、8KB unit Bankswitching（Total:512KB）\n");
-		str.Append("\t#$8000\n");
-		str.Append("\tPRG8K_8000_00:  start = $8000, size = $2000, type = ro, file = %O, fill = yes, fillval = $00, bank = $00;\n");
-		str.Append("\tPRG8K_8000_01:  start = $8000, size = $2000, type = ro, file = %O, fill = yes, fillval = $00, bank = $01;\n");
-		str.Append("\tPRG8K_8000_02:  start = $8000, size = $2000, type = ro, file = %O, fill = yes, fillval = $00, bank = $02;\n");
 
-		for (int i = 3; i <= PRGFIXED_blankbanks_fromMemoryStartbank; i++)
+	//for 2a03 (for mapper268:32MB PRG-ROM)............................................................
+		if (Header.SoundChip == SNDCHIP_NONE)
 		{
-			str.AppendFormat("\tPRG8K_8000_%02X:  start = $8000, size = $2000, type = ro, file = %s, fill = yes, fillval = $00, bank = $%02X;\n", i,"%O", i);
+
+
+
 		}
 
-		//$A000
-		str.Append("\t#$A000\n");
-		for (const auto &string : m_configMemoryAreaStrings)
+	//for N163 ........................................................................
+		if (Header.SoundChip & SNDCHIP_N163)
 		{
-			str.Append(string);
+			str.Append("MEMORY {\n");
+			str.Append("\tZP:      start = $00,   size = $0100,  type = rw, file = \"\";\n");
+			str.Append("\tOAM:     start = $0200,  size = $0100,  type = rw, file = \"\";\n");
+			str.Append("\tRAM:     start = $0300,  size = $0500,  type = rw, file = \"\";\n");
+			str.Append("\tHDR:     start = $0000,   size = $0010,  type = ro, file = %O, fill = yes, fillval = $00;\n");
+			str.Append("\tSRAM:    start = $6000, size = $2000,  type = rw;\n");
 
-			MemoryMusicbank_countdown--;
-			if (MemoryMusicbank_countdown == 0)
-			{
-				MemoryMusic_blankbanks_fromDPCMstartbank = firstMemoryDPCMbank - lastMemoryMusicbank;
-
-				for (int i = 1; i < MemoryMusic_blankbanks_fromDPCMstartbank; i++)
-				{
-					str.AppendFormat("\tPRG8K_A000_%02X:    start = $A000, size = $2000, type = ro, file = %s, fill = yes, fillval = $00, bank = $%02X;\n", lastMemoryMusicbank + i,"%O", lastMemoryMusicbank + i);
-
-					if (i == MemoryMusic_blankbanks_fromDPCMstartbank - 1){str.Append("\t#$C000\n");}
-					
-				}
-			}		
-		}
-		for (int i = lastMemoryDPCMbank + 1; i < 63; i++)
-		{
-			str.AppendFormat("\tPRG8K_C000_%02X:    start = $C000, size = $2000, type = ro, file = %s, fill = yes, fillval = $00, bank = $%02X;\n", i, "%O", i);
-		}
-
-		//$E000
-		str.Append("\t#$E000\n");
-		str.Append("\tPRGFIXED_E000: start = $E000, size = $2000, type = ro, file = %O, fill = yes, fillval = $00;\n");
-
-
-	//CHR memory bank
-		str.Append("\n\n\n");
-		str.Append("#CHR-ROM 256banks、1KB unit Bankswitching（Total:256KB）\n");
-		int chrbanknumber = 0;
-
-		for(int j = 0; j < 8; j++)
-		{
-			str.AppendFormat("\t#CHR line%d\n", j*4 );
-			for (int i = 0; i < 32; i++, chrbanknumber++)
-			{
-				str.AppendFormat("\tCHR1K_%02X00_%02X:       start = $%02X00, size = $0400, type = ro, file = %s, fill = yes, fillval = $00, bank = $%02X;\n", j*4, chrbanknumber, j*4,"%O", chrbanknumber);
-
-				if ((i + 1) % 8 == 0){str.Append("\n");}
-			}
+			//$8000
 			str.Append("\n");
+			str.Append("#PRG-ROM 64banks、8KB unit Bankswitching（Total:512KB）\n");
+			str.Append("\t#$8000\n");
+			str.Append("\tPRG8K_8000_00:  start = $8000, size = $2000, type = ro, file = %O, fill = yes, fillval = $00, bank = $00;\n");
+			str.Append("\tPRG8K_8000_01:  start = $8000, size = $2000, type = ro, file = %O, fill = yes, fillval = $00, bank = $01;\n");
+			str.Append("\tPRG8K_8000_02:  start = $8000, size = $2000, type = ro, file = %O, fill = yes, fillval = $00, bank = $02;\n");
+
+			for (int i = 3; i <= PRGFIXED_blankbanks_fromMemoryStartbank; i++)
+			{
+				str.AppendFormat("\tPRG8K_8000_%02X:  start = $8000, size = $2000, type = ro, file = %s, fill = yes, fillval = $00, bank = $%02X;\n", i,"%O", i);
+			}
+
+			//$A000
+			str.Append("\t#$A000\n");
+			for (const auto &string : m_configMemoryAreaStrings)
+			{
+				str.Append(string);
+
+				MemoryMusicbank_countdown--;
+				if (MemoryMusicbank_countdown == 0)
+				{
+					MemoryMusic_blankbanks_fromDPCMstartbank = firstMemoryDPCMbank - lastMemoryMusicbank;
+
+					for (int i = 1; i < MemoryMusic_blankbanks_fromDPCMstartbank; i++)
+					{
+						str.AppendFormat("\tPRG8K_A000_%02X:    start = $A000, size = $2000, type = ro, file = %s, fill = yes, fillval = $00, bank = $%02X;\n", lastMemoryMusicbank + i,"%O", lastMemoryMusicbank + i);
+
+						if (i == MemoryMusic_blankbanks_fromDPCMstartbank - 1){str.Append("\t#$C000\n");}
+						
+					}
+				}		
+			}
+			for (int i = lastMemoryDPCMbank + 1; i < 63; i++)
+			{
+				str.AppendFormat("\tPRG8K_C000_%02X:    start = $C000, size = $2000, type = ro, file = %s, fill = yes, fillval = $00, bank = $%02X;\n", i, "%O", i);
+			}
+
+			//$E000
+			str.Append("\t#$E000\n");
+			str.Append("\tPRGFIXED_E000: start = $E000, size = $2000, type = ro, file = %O, fill = yes, fillval = $00;\n");
+
+
+		//CHR memory bank
+			str.Append("\n\n\n");
+			str.Append("#CHR-ROM 256banks、1KB unit Bankswitching（Total:256KB）\n");
+			int chrbanknumber = 0;
+
+			for(int j = 0; j < 8; j++)
+			{
+				str.AppendFormat("\t#CHR line%d\n", j*4 );
+				for (int i = 0; i < 32; i++, chrbanknumber++)
+				{
+					str.AppendFormat("\tCHR1K_%02X00_%02X:       start = $%02X00, size = $0400, type = ro, file = %s, fill = yes, fillval = $00, bank = $%02X;\n", j*4, chrbanknumber, j*4,"%O", chrbanknumber);
+
+					if ((i + 1) % 8 == 0){str.Append("\n");}
+				}
+				str.Append("\n");
+			}
 		}
 	}
 	else {
@@ -814,38 +830,53 @@ void CChunkRenderText::StoreNSFConfig(unsigned int DPCMSegment, stNSFHeader Head
 	}
 	str.Append("}\n\n");
 
-	//segment bank
-	str.Append("SEGMENTS {\n");
-	str.Append("\tINESHDR:   load = HDR,              type = ro;\n");
-	str.Append("\tZEROPAGE:  load = ZP,               type = zp;\n");
-	str.Append("\tOAM:       load = OAM,              type = bss, align = $100;\n");
-	str.Append("\tBSS:       load = RAM,              type = bss, define = yes;\n");
-	str.Append("\tBRAM:      load = SRAM,             type = bss;\n");
-	str.Append("\n");
+	//segment bank _______________________________________________________________________
 
 	if (m_bBankSwitched) {
-		str.Append("\tMUS_FIXED_bank0: load = PRG8K_8000_00, type = ro;\n");
-		str.Append("\tMUS_FIXED_bank1: load = PRG8K_8000_01, type = ro;\n");
-		str.Append("\tMUS_FIXED_bank2: load = PRG8K_8000_02, type = ro;\n");
-		str.Append("\n");
-		for (const auto &string : m_configSegmentStrings)
-			str.Append(string);
 
-		str.Append("\n");
-		str.Append("\tCODE_C000_bank3E: load = PRG8K_C000_3E, type = ro;\n");
-		str.Append("\tRODATA:  			load = PRG8K_C000_3E, type = ro;\n");
-		str.Append("\n");
-		str.Append("\tFT_DRIVER1:  			load = PRGFIXED_E000, type = ro;\n");
-		str.Append("\tCODE_E000:   			load = PRGFIXED_E000, type = ro;\n");
-		str.Append("\tRODATA_PRGFIXED_E000: load = PRGFIXED_E000, type = ro;\n");
-		str.Append("\tVECTORS:     			load = PRGFIXED_E000, type = ro,  start = $FFFA;\n");
-		str.Append("\n");
-		str.Append("\tBG1:  load = CHR1K_0000_00, type = ro;\n");
-		str.Append("\tBG2:  load = CHR1K_0400_20, type = ro;\n");
-		str.Append("\tBG3:  load = CHR1K_0800_40, type = ro;\n");
-		str.Append("\tBG4:  load = CHR1K_0C00_60, type = ro;\n");
-		str.Append("\tSPR1: load = CHR1K_1000_80, type = ro;\n");
+		//for 2a03 (for mapper268:32MB PRG-ROM)............................................................
+		if (Header.SoundChip == SNDCHIP_NONE)
+		{
+			str.Append("\n");
+			for (const auto &string : m_configSegmentStrings)
+				str.Append(string);
 
+
+		}
+
+		//for N163 ........................................................................
+		if (Header.SoundChip & SNDCHIP_N163)
+		{
+			str.Append("SEGMENTS {\n");
+			str.Append("\tINESHDR:   load = HDR,              type = ro;\n");
+			str.Append("\tZEROPAGE:  load = ZP,               type = zp;\n");
+			str.Append("\tOAM:       load = OAM,              type = bss, align = $100;\n");
+			str.Append("\tBSS:       load = RAM,              type = bss, define = yes;\n");
+			str.Append("\tBRAM:      load = SRAM,             type = bss;\n");
+			str.Append("\n");
+
+			str.Append("\tMUS_FIXED_bank0: load = PRG8K_8000_00, type = ro;\n");
+			str.Append("\tMUS_FIXED_bank1: load = PRG8K_8000_01, type = ro;\n");
+			str.Append("\tMUS_FIXED_bank2: load = PRG8K_8000_02, type = ro;\n");
+			str.Append("\n");
+			for (const auto &string : m_configSegmentStrings)
+				str.Append(string);
+
+			str.Append("\n");
+			str.Append("\tCODE_C000_bank3E: load = PRG8K_C000_3E, type = ro;\n");
+			str.Append("\tRODATA:  			load = PRG8K_C000_3E, type = ro;\n");
+			str.Append("\n");
+			str.Append("\tFT_DRIVER1:  			load = PRGFIXED_E000, type = ro;\n");
+			str.Append("\tCODE_E000:   			load = PRGFIXED_E000, type = ro;\n");
+			str.Append("\tRODATA_PRGFIXED_E000: load = PRGFIXED_E000, type = ro;\n");
+			str.Append("\tVECTORS:     			load = PRGFIXED_E000, type = ro,  start = $FFFA;\n");
+			str.Append("\n");
+			str.Append("\tBG1:  load = CHR1K_0000_00, type = ro;\n");
+			str.Append("\tBG2:  load = CHR1K_0400_20, type = ro;\n");
+			str.Append("\tBG3:  load = CHR1K_0800_40, type = ro;\n");
+			str.Append("\tBG4:  load = CHR1K_0C00_60, type = ro;\n");
+			str.Append("\tSPR1: load = CHR1K_1000_80, type = ro;\n");
+		}
 	}
 	else {
 		str.Append("  CODE:      load = PRG, type = " + segmentType + ";\n");
@@ -1016,18 +1047,17 @@ void CChunkRenderText::SetExtraDataFiles(CFile *pFileNSFStub, CFile *pFileNSFHea
 	m_pFileSongInfo = pFileSongInfo;
 }
 
-void CChunkRenderText::StoreSongInfo(const CStringA& name, const CStringA& artist, const CStringA& copyright) const
+void CChunkRenderText::StoreSongInfo(stNSFHeader Header) const
 {
 	if (m_pFileSongInfo == nullptr)
 		return;
 
 	CStringA str;
-	str.Format(
-		"; Song information\n\n"
-		"song_title:    .byte \"%s\" \n.byte $00\n" 
-		"song_artist:   .byte \"%s\" \n.byte $00\n"
-		"song_copyright:.byte \"%s\" \n.byte $00\n",
-		(LPCSTR)name, (LPCSTR)artist, (LPCSTR)copyright);
+
+	str.Append("; Song information\n\n");
+	str.AppendFormat("song_title:    .byte \"%s\" \n.byte $00\n", Header.SongName);
+	str.AppendFormat("song_artist:   .byte \"%s\" \n.byte $00\n", Header.ArtistName);
+	str.AppendFormat("song_copyright:.byte \"%s\" \n.byte $00\n", Header.Copyright);
 
 	WriteFileString(str, m_pFileSongInfo);
 }

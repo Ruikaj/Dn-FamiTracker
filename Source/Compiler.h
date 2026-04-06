@@ -165,9 +165,6 @@ private:
 	void	StoreSongs(bool bUseAllExp = true);
 	void	StorePatterns(unsigned int Track, bool bUseAllExp = true);
 
-	CStringA m_strSongName;
-	CStringA m_strArtistName;
-	CStringA m_strCopyright;
 
 	// Bankswitching functions
 	void	UpdateSamplePointers(unsigned int Origin);

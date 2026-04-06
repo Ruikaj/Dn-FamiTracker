@@ -46,7 +46,7 @@ public:
 	void StoreNSFStub(unsigned char Header, vibrato_t VibratoStyle, bool LinearPitch, int ActualNamcoChannels, bool UseAllChips, bool IsAssembly = false) const;
 	void StoreNSFHeader(stNSFHeader Header) const;
 	void StoreNSFConfig(unsigned int DPCMSegment, stNSFHeader Header) const;
-	void StoreSongInfo(const CStringA& name, const CStringA& artist, const CStringA& copyright) const;
+	void StoreSongInfo(stNSFHeader Header) const;
 	void StorePeriods(unsigned int *pLUTNTSC, unsigned int *pLUTPAL, unsigned int *pLUTSaw, unsigned int *pLUTVRC7, unsigned int *pLUTFDS, unsigned int *pLUTN163) const;
 	void StoreVibrato(unsigned int *pLUTVibrato) const;
 	void StoreUpdateExt(unsigned char Expansion) const;
