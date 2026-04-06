@@ -1,7 +1,7 @@
 
 **Dn-Famitracker 0.5.2 ExInst (Improve instrument overflow, Increase Instrument capacity)**
 
-Improvements・Changes:
+Improvements・Changes (2026/04/06):
 - Modified NSF file memory layout that allocates 3 pages for instrument data.
 
     It can hold up to 12KB of instrument data, reducing the possibility of instrument overflow during NSF export.
@@ -10,7 +10,7 @@ Improvements・Changes:
 
 - The maximum number of instruments and DPCM samples has been increased to 127 each.
 
-改善・変更点：
+改善・変更点 (2026/04/06)：
 - インストルメントデータ用に3ページを割り当てるよう、NSFファイルのメモリレイアウトを変更
 
     最大12KBのインストルメントデータを格納でき、NSFエクスポート時のInstrument Oveflowの可能性を低減
@@ -24,7 +24,7 @@ Instead of .dnm files from the official version, please load FamiTracker Text fi
 The.dnm project save files for this fork version are no longer compatible with those from the official version.
 
 公式バージョンからのプロジェクトのロードは、.dnmの代わりに公式バージョンからエクスポートしたFamitracker Textをロードして下さい。
-このフォークのプロジェクトの.dnmセーブデータは公式版のものとは互換性はありません。
+このフォークの.dnmプロジェクトデータは公式版のものとは互換性はありません。
 
 **File memory map for NSFtype:bankswitched**
 
