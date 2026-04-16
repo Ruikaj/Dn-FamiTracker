@@ -145,7 +145,7 @@ void CChunkRenderText::StoreChunks(const std::vector<CChunk*> &Chunks)
 	DumpStrings(CStringA("; Song info\n"), CStringA("\n"), m_songStrings, m_pFile);
 
 	// Song data
-	DumpStrings(CStringA(";\n; Pattern and frame data for all songs below\n;\n\n"), CStringA(""), m_songDataStrings, m_pFile);
+	DumpStrings(CStringA(";\n; Pattern and frame data for all songs below\n;\n	.segment \"MUS_02\" \n"), CStringA(""), m_songDataStrings, m_pFile);
 
 	// Actual DPCM samples are stored later
 }
@@ -579,8 +579,8 @@ void CChunkRenderText::StoreWavesChunk(CChunk *pChunk, CFile *pFile)
 
 void CChunkRenderText::StoreMusicBankSegment(unsigned char bank, CStringA &str)
 {
-//	if (bank < CCompiler::PATTERN_SWITCH_BANK)
-//		return;
+	if (bank < CCompiler::PATTERN_SWITCH_BANK)
+		return;
 	CStringA segmenttxt, memorytxt;
 	bool duplicate = false;
 	str.Format("\t.segment \"MUS_%02X\"\n", bank);

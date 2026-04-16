@@ -111,7 +111,7 @@ const int CCompiler::PAGE_START					= 0x8000;
 const int CCompiler::PAGE_BANKED				= 0xC000;	// 0xD000 -> 0xDFFF
 const int CCompiler::PAGE_SAMPLES				= 0xE000;
 
-const int CCompiler::PATTERN_SWITCH_BANK		= 5;		// 0xD000 -> 0xDFFF 
+const int CCompiler::PATTERN_SWITCH_BANK		= 2;		// 0xD000 -> 0xDFFF 
 
 const int CCompiler::DPCM_PAGE_WINDOW			= 1;		// Number of switchable pages in the DPCM area
 const int CCompiler::DPCM_SWITCH_ADDRESS		= 0xF000;	// Switch to new banks when reaching this address
