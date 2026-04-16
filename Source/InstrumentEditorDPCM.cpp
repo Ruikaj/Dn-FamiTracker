@@ -759,7 +759,7 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	}
 	else if (Result > 1) {
 		// Add sample
-		CComboBox *pPitchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
+		CComboBox *pPitchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PREVIEW_PITCH));
 		int Pitch = pPitchBox->GetCurSel();
 		m_pInstrument->SetSampleIndex(m_iOctave, m_iSelectedKey, Result - 1);
 		m_pInstrument->SetSamplePitch(m_iOctave, m_iSelectedKey, Pitch);
