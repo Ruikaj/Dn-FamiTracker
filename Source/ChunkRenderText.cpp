@@ -579,7 +579,7 @@ void CChunkRenderText::StoreWavesChunk(CChunk *pChunk, CFile *pFile)
 
 void CChunkRenderText::StoreMusicBankSegment(unsigned char bank, CStringA &str)
 {
-	if (bank < CCompiler::PATTERN_SWITCH_BANK)
+	if (bank < CCompiler::PATTERN_SWITCH_BANK - 3)
 		return;
 	CStringA segmenttxt, memorytxt;
 	bool duplicate = false;
